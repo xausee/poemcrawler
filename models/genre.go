@@ -11,7 +11,7 @@ type Genre struct {
 	N                   int           // 自增序号
 	Description         string        // 简介
 	Chronology          string        // 所属年代
-	PeotUrls            []PoetAddress // 诗人网页地址（最后的路径）
+	PoetAddresses       []PoetAddress // 诗人网页地址（最后的路径）
 	TimeStamp           string        // 创建时间戳
 	LastUpdateTimeStamp string        // 最后更新时间戳
 }

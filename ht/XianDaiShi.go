@@ -109,15 +109,13 @@ func (t XianDaiShi) GetGenre() []models.Genre {
 
 			description = description + poetNames
 			genre := models.Genre{
-				ID:          bson.NewObjectId().Hex(),
-				Name:        genreName,
-				Description: description,
-				Chronology:  genreChronologyMap[href],
-				PeotUrls:    pas,
+				ID:            bson.NewObjectId().Hex(),
+				Name:          genreName,
+				Description:   description,
+				Chronology:    genreChronologyMap[href],
+				PoetAddresses: pas,
 			}
-
 			genres = append(genres, genre)
-
 		}
 
 	})

@@ -18,6 +18,9 @@ import (
 // 现代诗人年表
 var poetChronology = make(map[string]string)
 
+// 诗歌流派信息
+var genres = make([]models.Genre, 0, 50)
+
 // Dispatcher 分派器
 type Dispatcher struct {
 	ctx *gocrawl.URLContext
@@ -100,7 +103,7 @@ func (d Dispatcher) DispatchToShiKu() {
 
 		// 获取诗歌流派数据
 		if d.doc.Url.String() == "http://www.shiku.org/shiku/xs/indexlp.htm" {
-			genres := c.GetGenre()
+			genres = c.GetGenre()
 			db.SaveGenres(genres)
 
 			return
@@ -128,6 +131,17 @@ func (d Dispatcher) DispatchToShiKu() {
 		if _, ok := poetChronology[suffix]; ok {
 			poet.Chronology = poetChronology[suffix]
 		}
+
+		// 处理诗人流派信息
+		gs := make([]string, 0, 5)
+		for _, genre := range genres {
+			for _, poetaddress := range genre.PoetAddresses {
+				if poetaddress.Name == poet.Name && poetaddress.UrlAddress == suffix {
+					gs = append(gs, genre.Name)
+				}
+			}
+		}
+		poet.Genres = gs
 
 		hasPoet = true
 	case "gs":
