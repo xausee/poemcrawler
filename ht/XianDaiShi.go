@@ -91,21 +91,23 @@ func (t XianDaiShi) GetGenre() []models.Genre {
 			description = strings.TrimSpace(description)
 
 			pas := make([]models.PoetAddress, 0, 100)
+			poetNames := ""
 			s.Find("tr").Find("a").Each(func(j int, s1 *goquery.Selection) {
 				href, existHref := s1.Attr("href")
 				if existHref && !strings.Contains(href, "#") {
 					bytes := []byte(s1.Text())
 					poetName := strings.TrimSpace(util.GBK2Unicode(bytes))
+					poetNames = poetNames + " " + poetName
 
 					pa := models.PoetAddress{
 						Name:       poetName,
 						UrlAddress: href,
 					}
 					pas = append(pas, pa)
-
 				}
 			})
 
+			description = description + poetNames
 			genre := models.Genre{
 				ID:          bson.NewObjectId().Hex(),
 				Name:        genreName,
