@@ -7,8 +7,9 @@ type PoetAddress struct {
 
 type Genre struct {
 	ID                  string        // ID号
-	Name                string        // 流派名
 	N                   int           // 自增序号
+	Name                string        // 流派名
+	AlphabetIndex       string        // 名字字母表索引
 	Description         string        // 简介
 	Chronology          string        // 所属年代
 	PoetAddresses       []PoetAddress // 诗人网页地址（最后的路径）

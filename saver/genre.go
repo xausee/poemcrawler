@@ -3,8 +3,10 @@ package db
 import (
 	"PoemCrawler/models"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/mozillazg/go-pinyin"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -30,6 +32,7 @@ func SaveGenres(genres []models.Genre) (int, error) {
 		genre.TimeStamp = time.Now().Format("2006-01-02 15:04:05")
 		genre.LastUpdateTimeStamp = time.Now().Format("2006-01-02 15:04:05")
 
+		genre.AlphabetIndex = strings.ToUpper(pinyin.LazyPinyin(genre.Name, pinyin.NewArgs())[0])[0:1]
 		genre.N = total + n + 1
 		err = c.Insert(genre)
 		if err != nil {

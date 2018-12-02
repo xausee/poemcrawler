@@ -86,7 +86,7 @@ var CONFIG Config
 var mongoURI string
 
 func init() {
-	isTest := true
+	isTest := false
 
 	config = loadConfig(isTest)
 
