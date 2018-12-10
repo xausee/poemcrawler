@@ -2,6 +2,7 @@ package main
 
 import (
 	"PoemCrawler/dpc"
+	"PoemCrawler/saver"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -23,7 +24,8 @@ func (e *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Do
 		if err := recover(); err != nil {
 			log.Println("处理 " + ctx.URL().String() + " 时产生异常，继续...")
 			debug.PrintStack()
-			e.Visit(ctx, res, doc)
+			//e.Visit(ctx, res, doc)
+			db.SaveFailPage(ctx.URL().String())
 		}
 	}()
 

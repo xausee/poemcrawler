@@ -11,11 +11,12 @@ import (
 
 // 数据库信息
 const (
-	PoemCollection  = "poem"    // 诗歌数据集
-	Address         = "address" // 访问过的url地址
-	PoetCollection  = "poet"    // 诗人数据集
-	GenreCollection = "genre"   // 诗歌流派
-	UserCollection  = "user"    // 用户信息数据集
+	PoemCollection  = "poem"     // 诗歌数据集
+	Address         = "address"  // 访问过的url地址
+	PoetCollection  = "poet"     // 诗人数据集
+	GenreCollection = "genre"    // 诗歌流派
+	UserCollection  = "user"     // 用户信息数据集
+	FailPage        = "failpage" // 抓取失败的地址
 )
 
 // MongoConfig 定义数据库配置数据结构
