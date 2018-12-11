@@ -37,7 +37,6 @@ func SavePoet(p models.Poet) error {
 	} else if unicode.IsDigit(r[0]) {
 		// 阿拉伯数字的情况
 		p.AlphabetIndex = digits[string(r[0])]
-
 	} else {
 		// 汉字的情况
 		p.AlphabetIndex = strings.ToUpper(pinyin.LazyPinyin(p.Name, pinyin.NewArgs())[0])[0:1]
