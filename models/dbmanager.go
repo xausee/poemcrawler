@@ -15,7 +15,6 @@ const (
 	Address         = "address"  // 访问过的url地址
 	PoetCollection  = "poet"     // 诗人数据集
 	GenreCollection = "genre"    // 诗歌流派
-	UserCollection  = "user"     // 用户信息数据集
 	FailPage        = "failpage" // 抓取失败的地址
 )
 
@@ -61,14 +60,16 @@ func loadJson(filename string, v interface{}) {
 	}
 }
 
-// loadConfig 读取config.json文件并反序列化为Config对象
-func loadConfig(isTest bool) Config {
+const (
+	CaoMangProd = "prodconfig.json"
+	CaoMangUAT  = "uatconfig.json"
+	SouYun      = "souyun.json"
+)
+
+// loadConfig 读取配置文件并反序列化为Config对象
+func loadConfig(configName string) Config {
 	config := Config{}
-	if isTest {
-		loadJson("./uatconfig.json", &config)
-	} else {
-		loadJson("./prodconfig.json", &config)
-	}
+	loadJson(configName, &config)
 	return config
 }
 
@@ -78,27 +79,20 @@ type DBManager struct {
 }
 
 // 配置数据
-var config Config
-
-// 配置数据
 var CONFIG Config
 
 // 数据库URI
 var mongoURI string
 
 func init() {
-	isTest := false
-
-	config = loadConfig(isTest)
-
-	CONFIG = config
+	CONFIG = loadConfig(SouYun)
 
 	mongoURI = fmt.Sprintf("mongodb://%s:%s@%s:%v/%s",
-		config.User.Name,
-		config.User.Pwd,
-		config.Mongo.IP,
-		config.Mongo.Port,
-		config.Mongo.DB)
+		CONFIG.User.Name,
+		CONFIG.User.Pwd,
+		CONFIG.Mongo.IP,
+		CONFIG.Mongo.Port,
+		CONFIG.Mongo.DB)
 
 	log.Println("数据库URI：", mongoURI)
 }

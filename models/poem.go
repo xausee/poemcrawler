@@ -87,7 +87,7 @@ func NewPoemModel() *PoemModel {
 
 	//defer db.Close()
 
-	c := db.Session.DB(config.Mongo.DB).C(PoemCollection)
+	c := db.Session.DB(CONFIG.Mongo.DB).C(PoemCollection)
 	return &PoemModel{db: db, coll: c}
 }
 

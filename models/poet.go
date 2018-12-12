@@ -38,7 +38,7 @@ func NewPoetModel() *PoetModel {
 
 	//defer db.Close()
 
-	c := db.Session.DB(config.Mongo.DB).C(PoetCollection)
+	c := db.Session.DB(CONFIG.Mongo.DB).C(PoetCollection)
 	return &PoetModel{db: db, coll: c}
 }
 
