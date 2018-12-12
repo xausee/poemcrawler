@@ -91,59 +91,20 @@ func (d Dispatcher) DispatchToShiKu() {
 
 	switch t {
 	case "xs":
-		poemType = models.XianDai.String()
-		c := ht.NewXianDaiShi(d.doc)
-
 		// 先获取诗人年表数据，作为全局数据来使用
-		if d.doc.Url.String() == "http://www.shiku.org/shiku/xs/index.htm" {
-			poetChronology = c.GetPoetChronology()
-
-			return // 首页无诗歌数据内容，获取诗人年代信息后直接返回
+		if len(poetChronology) == 0 {
+			poetChronology = ht.GetPoetChronology()
 		}
 
 		// 获取诗歌流派数据
-		if d.doc.Url.String() == "http://www.shiku.org/shiku/xs/indexlp.htm" {
-			genres = c.GetGenre()
-			db.SaveGenres(genres)
-
-			return
-		}
-
-		if len(ps) == 4 {
-			if ps[2] == "yeshibin" {
-				// 诗集的情况，一个页面多首诗
-				// 如：http://www.shiku.org/shiku/xs/yeshibin/yeshibin_ztz_1.htm
-				poet = *c.ParsePoet()
-				poems = c.ParsePoems()
-			} else {
-				// 诗集的情况，一个页面一首诗
-				// 如：http://www.shiku.org/shiku/xs/haizi/154.htm
-				poet = *c.ParsePoetFromOnePageOfCollection()
-				poems = c.ParsePoemFromOnePageOfCollection()
-			}
-			isPoemCollection = true
-		} else {
-			poet = *c.ParsePoet()
-			poems = c.ParsePoems()
-		}
-
-		// 给诗人年代字段赋值
-		if _, ok := poetChronology[suffix]; ok {
-			poet.Chronology = poetChronology[suffix]
-		}
-
-		// 处理诗人流派信息
-		gs := make([]string, 0, 5)
-		for _, genre := range genres {
-			for _, poetaddress := range genre.PoetAddresses {
-				if poetaddress.Name == poet.Name && poetaddress.UrlAddress == suffix {
-					gs = append(gs, genre.Name)
-				}
+		if len(genres) == 0 {
+			genres = ht.GetPoemGenres()
+			if !db.IsGenresSaved() {
+				db.SaveGenres(genres)
 			}
 		}
-		poet.Genres = gs
 
-		hasPoet = true
+		ht.ParseXianDaiShi(poetChronology, genres, d.doc)
 	case "gs":
 		poemType = models.GuDian.String()
 		c := ht.NewGuDianShi(d.ctx, d.res, d.doc)
@@ -233,31 +194,6 @@ func (d Dispatcher) DispatchToShiKu() {
 		}
 	}
 
-	msg := ""
-	if hasPoet {
-		err := util.CheckPoet(poet)
-		if err != nil {
-			msg = err.Error()
-		} else {
-			if !isPoemCollection {
-				db.SavePoet(poet)
-			}
-		}
-	}
-
-	err := util.CheckPoems(poems)
-	count := len(poems)
-
-	if err != nil {
-		msg = err.Error()
-		if msg == "诗歌标题过长，解析可能有误" {
-			db.SavePoems(poems, poemType)
-		} else {
-			count = 0
-		}
-	} else {
-		db.SavePoems(poems, poemType)
-	}
-
-	db.SaveAddress(d.ctx.URL().String(), msg, count)
+	// 保存数据
+	db.Save(hasPoet, isPoemCollection, poet, poemType, poems, d.doc.Url.String())
 }

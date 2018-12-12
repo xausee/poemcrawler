@@ -10,8 +10,11 @@ import (
 )
 
 // SavePoet 保存诗人信息
-func SavePoet(p models.Poet) error {
+func SavePoet(p models.Poet) {
 	db, err := models.NewDBManager()
+	if err != nil {
+		log.Println(err.Error())
+	}
 	defer db.Close()
 
 	c := db.Session.DB(models.CONFIG.Mongo.DB).C(models.PoetCollection)
@@ -49,9 +52,6 @@ func SavePoet(p models.Poet) error {
 	err = c.Insert(p)
 	if err != nil {
 		log.Println("保存诗人信息失败：", p.Name)
-		return err
 	}
 	log.Println("保存诗人信息成功：", p.Name)
-
-	return nil
 }

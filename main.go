@@ -2,6 +2,7 @@ package main
 
 import (
 	"PoemCrawler/dpc"
+	"PoemCrawler/ht"
 	"PoemCrawler/saver"
 	"log"
 	"net/http"
@@ -108,4 +109,7 @@ func main() {
 	// c.Run("http://www.shiku.org/shiku/ws/index.htm")
 	// 搜韵网
 	// c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=XianQin")
+
+    // 爬取完毕后统一处理爬取失败的页面（再爬取一次）
+	ht.ParseAllFailPage()
 }

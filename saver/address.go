@@ -2,6 +2,7 @@ package db
 
 import (
 	"PoemCrawler/models"
+	"log"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -14,8 +15,11 @@ type Address struct {
 }
 
 // SaveAddress 保存单首诗歌到数据库
-func SaveAddress(addr, msg string, count int) error {
+func SaveAddress(addr, msg string, count int) {
 	db, err := models.NewDBManager()
+	if err != nil {
+		log.Println(err)
+	}
 	defer db.Close()
 
 	c := db.Session.DB(models.CONFIG.Mongo.DB).C(models.Address)
@@ -29,8 +33,6 @@ func SaveAddress(addr, msg string, count int) error {
 
 	err = c.Insert(a)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
-
-	return nil
 }

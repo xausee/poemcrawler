@@ -3,28 +3,25 @@ package ht
 import (
 	"PoemCrawler/models"
 	"PoemCrawler/util"
-	"strings"
-
-	"gopkg.in/mgo.v2/bson"
-
 	"fmt"
-
 	"github.com/PuerkitoBio/goquery"
+	"gopkg.in/mgo.v2/bson"
+	"strings"
 )
 
 // XianDaiShi 处理现代诗歌的类型
 // 页面样例 http://www.shiku.org/shiku/xs/xuzhimo.htm
 type XianDaiShi struct {
 	doc   *goquery.Document
-	poet  *models.Poet
-	poems []models.Poem
+	Poet  *models.Poet
+	Poems []models.Poem
 }
 
 // NewXianDaiShi 创建现代诗对象
 func NewXianDaiShi(doc *goquery.Document) *XianDaiShi {
 	return &XianDaiShi{
 		doc:   doc,
-		poems: make([]models.Poem, 0, 0),
+		Poems: make([]models.Poem, 0, 0),
 	}
 }
 
@@ -154,16 +151,6 @@ func (t XianDaiShi) GetFirstPoemTitleWithSep() string {
 	return ""
 }
 
-// Poet 获取诗人信息
-func (t *XianDaiShi) Poet() *models.Poet {
-	return t.poet
-}
-
-// Poems 获取诗歌数据
-func (t *XianDaiShi) Poems() []models.Poem {
-	return t.poems
-}
-
 // ParsePoet 解析网页获取诗人信息
 func (t *XianDaiShi) ParsePoet() *models.Poet {
 	gbkStr := t.doc.Find("title").Text()
@@ -190,13 +177,11 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 
 	ft := t.GetFirstPoemTitleWithSep()
 	if ft == "" {
-		poet := &models.Poet{
+		t.Poet = &models.Poet{
 			Name:   name,
 			Intro:  "",
 			Source: t.doc.Url.String(),
 		}
-		t.poet = poet
-
 	} else {
 		gbkStr = t.doc.Find("body").Text()
 		bytes = []byte(gbkStr)
@@ -209,18 +194,16 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 		}
 
 		intro := strings.TrimSpace(text)
-		poet := &models.Poet{
+		t.Poet = &models.Poet{
 			Name:   name,
 			Intro:  intro,
 			Source: t.doc.Url.String(),
 		}
-		t.poet = poet
-
 	}
 
-	t.poet.ID = bson.NewObjectId().Hex()
+	t.Poet.ID = bson.NewObjectId().Hex()
 
-	return t.poet
+	return t.Poet
 }
 
 // ParsePoetFromOnePageOfCollection 从诗集子页面获取诗人信息
@@ -249,13 +232,13 @@ func (t *XianDaiShi) ParsePoetFromOnePageOfCollection() *models.Poet {
 		name = strings.TrimSpace(strings.Split(name, "诗集")[0])
 	}
 
-	t.poet = &models.Poet{
+	t.Poet = &models.Poet{
 		ID:     bson.NewObjectId().Hex(),
 		Name:   name,
 		Source: t.doc.Url.String(),
 	}
 
-	return t.poet
+	return t.Poet
 }
 
 // ParsePoemsH2AndP 标题为h2标签，诗歌内容为h2标签后第二个标签内
@@ -274,18 +257,18 @@ func (t *XianDaiShi) ParsePoemsH2AndP() []models.Poem {
 		content := util.GBK2Unicode(contentBytes)
 
 		poem := models.Poem{
-			AuthorID: t.poet.ID,
-			Author:   t.poet.Name,
+			AuthorID: t.Poet.ID,
+			Author:   t.Poet.Name,
 			Source:   t.doc.Url.String(),
 			Title:    title,
 			SubTitle: subTitle,
 			Content:  content,
 		}
 
-		t.poems = append(t.poems, poem)
+		t.Poems = append(t.Poems, poem)
 	})
 
-	return t.poems
+	return t.Poems
 }
 
 // ParsePoemsPAndP 标题为p align="center" 标签， 诗歌内容为标题标签后第一个p标签内
@@ -305,19 +288,19 @@ func (t *XianDaiShi) ParsePoemsPAndP() []models.Poem {
 		// 起始作者信息介绍里，p align="center" 标签内内容为空，忽略
 		if title != "" {
 			poem := models.Poem{
-				AuthorID: t.poet.ID,
-				Author:   t.poet.Name,
+				AuthorID: t.Poet.ID,
+				Author:   t.Poet.Name,
 				Source:   t.doc.Url.String(),
 				Title:    title,
 				SubTitle: subTitle,
 				Content:  content,
 			}
 
-			t.poems = append(t.poems, poem)
+			t.Poems = append(t.Poems, poem)
 		}
 	})
 
-	return t.poems
+	return t.Poems
 }
 
 // ParsePoemFromOnePageOfCollection 获取诗集中的单首诗歌，返回只有一首诗歌的诗歌数组
@@ -327,30 +310,25 @@ func (t *XianDaiShi) ParsePoemFromOnePageOfCollection() []models.Poem {
 	titleBytes := []byte(gbkTitle)
 	title := strings.TrimSpace(util.GBK2Unicode(titleBytes))
 
-	//gbkAuthor := t.doc.Find("a").Eq(0).Text()
-	//authorBytes := []byte(gbkAuthor)
-	//author := strings.TrimSpace(util.GBK2Unicode(authorBytes))
-	//author = strings.Replace(author, "诗集", "", -1)
-
 	gbkContent := t.doc.Find("pre").Text()
 	poemContentBytes := []byte(gbkContent)
 	content := strings.TrimSpace(util.GBK2Unicode(poemContentBytes))
 
 	if title == "诗人简介" {
-		return t.poems
+		return t.Poems
 	}
 
 	poem := models.Poem{
-		AuthorID: t.poet.ID,
-		Author:   t.poet.Name,
+		AuthorID: t.Poet.ID,
+		Author:   t.Poet.Name,
 		Source:   t.doc.Url.String(),
 		Title:    title,
 		Content:  content,
 	}
 
-	t.poems = append(t.poems, poem)
+	t.Poems = append(t.Poems, poem)
 
-	return t.poems
+	return t.Poems
 }
 
 // ParsePoems 通过在标题前加分隔符后解析纯文本的方式解析页面
@@ -422,14 +400,14 @@ func (t *XianDaiShi) ParsePoems() []models.Poem {
 				content = strings.Replace(content, ContentTitleSep, "", -1)
 
 				poem := models.Poem{
-					AuthorID: t.poet.ID,
-					Author:   t.poet.Name,
+					AuthorID: t.Poet.ID,
+					Author:   t.Poet.Name,
 					Source:   t.doc.Url.String(),
 					Title:    title,
 					Content:  content,
 				}
 
-				t.poems = append(t.poems, poem)
+				t.Poems = append(t.Poems, poem)
 			}
 		} else {
 			count := len(content)
@@ -451,17 +429,17 @@ func (t *XianDaiShi) ParsePoems() []models.Poem {
 				}
 
 				poem := models.Poem{
-					AuthorID: t.poet.ID,
-					Author:   t.poet.Name,
+					AuthorID: t.Poet.ID,
+					Author:   t.Poet.Name,
 					Source:   t.doc.Url.String(),
 					Title:    title,
 					Content:  content,
 				}
 
-				t.poems = append(t.poems, poem)
+				t.Poems = append(t.Poems, poem)
 			}
 		}
 	}
 
-	return t.poems
+	return t.Poems
 }

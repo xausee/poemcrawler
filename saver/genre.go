@@ -11,20 +11,25 @@ import (
 )
 
 // SaveGenres 保存诗歌流派到数据库
-func SaveGenres(genres []models.Genre) (int, error) {
+func SaveGenres(genres []models.Genre) int {
 	if len(genres) == 0 {
-		return 0, nil
+		return 0
 	}
 
 	db, err := models.NewDBManager()
+	if err != nil {
+		log.Println(err)
+		return 0
+	}
+
 	defer db.Close()
 
 	c := db.Session.DB(models.CONFIG.Mongo.DB).C(models.GenreCollection)
 
-	total, e := c.Find(bson.M{}).Count()
-	if e != nil {
-		log.Println(e)
-		return 0, err
+	total, err := c.Find(bson.M{}).Count()
+	if err != nil {
+		log.Println(err)
+		return 0
 	}
 
 	n := 0
@@ -43,5 +48,24 @@ func SaveGenres(genres []models.Genre) (int, error) {
 		log.Println("保存诗歌流派成功：", genre.Name)
 	}
 
-	return n, err
+	return n
+}
+
+func IsGenresSaved() bool {
+	db, err := models.NewDBManager()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	defer db.Close()
+
+	c := db.Session.DB(models.CONFIG.Mongo.DB).C(models.GenreCollection)
+
+	count, err := c.Find(bson.M{}).Count()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	return count > 0
 }
