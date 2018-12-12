@@ -3,32 +3,26 @@ package ht
 import (
 	"PoemCrawler/models"
 	"PoemCrawler/util"
-	"net/http"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"
 
 	"fmt"
 
-	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
 )
 
 // XianDaiShi 处理现代诗歌的类型
 // 页面样例 http://www.shiku.org/shiku/xs/xuzhimo.htm
 type XianDaiShi struct {
-	uctx  *gocrawl.URLContext
-	res   *http.Response
 	doc   *goquery.Document
 	poet  *models.Poet
 	poems []models.Poem
 }
 
 // NewXianDaiShi 创建现代诗对象
-func NewXianDaiShi(uctx *gocrawl.URLContext, res *http.Response, doc *goquery.Document) *XianDaiShi {
+func NewXianDaiShi(doc *goquery.Document) *XianDaiShi {
 	return &XianDaiShi{
-		uctx:  uctx,
-		res:   res,
 		doc:   doc,
 		poems: make([]models.Poem, 0, 0),
 	}
@@ -199,7 +193,7 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 		poet := &models.Poet{
 			Name:   name,
 			Intro:  "",
-			Source: t.uctx.URL().String(),
+			Source: t.doc.Url.String(),
 		}
 		t.poet = poet
 
@@ -218,7 +212,7 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 		poet := &models.Poet{
 			Name:   name,
 			Intro:  intro,
-			Source: t.uctx.URL().String(),
+			Source: t.doc.Url.String(),
 		}
 		t.poet = poet
 
@@ -258,7 +252,7 @@ func (t *XianDaiShi) ParsePoetFromOnePageOfCollection() *models.Poet {
 	t.poet = &models.Poet{
 		ID:     bson.NewObjectId().Hex(),
 		Name:   name,
-		Source: t.uctx.URL().String(),
+		Source: t.doc.Url.String(),
 	}
 
 	return t.poet
@@ -282,7 +276,7 @@ func (t *XianDaiShi) ParsePoemsH2AndP() []models.Poem {
 		poem := models.Poem{
 			AuthorID: t.poet.ID,
 			Author:   t.poet.Name,
-			Source:   t.uctx.URL().String(),
+			Source:   t.doc.Url.String(),
 			Title:    title,
 			SubTitle: subTitle,
 			Content:  content,
@@ -313,7 +307,7 @@ func (t *XianDaiShi) ParsePoemsPAndP() []models.Poem {
 			poem := models.Poem{
 				AuthorID: t.poet.ID,
 				Author:   t.poet.Name,
-				Source:   t.uctx.URL().String(),
+				Source:   t.doc.Url.String(),
 				Title:    title,
 				SubTitle: subTitle,
 				Content:  content,
@@ -349,7 +343,7 @@ func (t *XianDaiShi) ParsePoemFromOnePageOfCollection() []models.Poem {
 	poem := models.Poem{
 		AuthorID: t.poet.ID,
 		Author:   t.poet.Name,
-		Source:   t.uctx.URL().String(),
+		Source:   t.doc.Url.String(),
 		Title:    title,
 		Content:  content,
 	}
@@ -430,7 +424,7 @@ func (t *XianDaiShi) ParsePoems() []models.Poem {
 				poem := models.Poem{
 					AuthorID: t.poet.ID,
 					Author:   t.poet.Name,
-					Source:   t.uctx.URL().String(),
+					Source:   t.doc.Url.String(),
 					Title:    title,
 					Content:  content,
 				}
@@ -459,7 +453,7 @@ func (t *XianDaiShi) ParsePoems() []models.Poem {
 				poem := models.Poem{
 					AuthorID: t.poet.ID,
 					Author:   t.poet.Name,
-					Source:   t.uctx.URL().String(),
+					Source:   t.doc.Url.String(),
 					Title:    title,
 					Content:  content,
 				}

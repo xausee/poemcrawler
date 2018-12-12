@@ -92,7 +92,7 @@ func (d Dispatcher) DispatchToShiKu() {
 	switch t {
 	case "xs":
 		poemType = models.XianDai.String()
-		c := ht.NewXianDaiShi(d.ctx, d.res, d.doc)
+		c := ht.NewXianDaiShi(d.doc)
 
 		// 先获取诗人年表数据，作为全局数据来使用
 		if d.doc.Url.String() == "http://www.shiku.org/shiku/xs/index.htm" {
