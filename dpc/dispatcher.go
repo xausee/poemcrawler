@@ -4,7 +4,6 @@ import (
 	"PoemCrawler/ht"
 	"PoemCrawler/models"
 	"PoemCrawler/saver"
-	"PoemCrawler/util"
 	"log"
 	"net/http"
 	"strings"
@@ -34,39 +33,12 @@ func NewDispatcher(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Doc
 }
 
 func (d Dispatcher) DispatchToSouYun() {
-	hasPoet := true
-
 	souyun := ht.NewSouYun(d.ctx, d.res, d.doc)
 	poet := *souyun.Poet
 	poems := souyun.GetPoems()
 
-	msg := ""
-	poemType := models.GuDian.String()
-
-	if hasPoet {
-		err := util.CheckPoet(poet)
-		if err != nil {
-			msg = err.Error()
-		} else {
-			db.SavePoet(poet)
-		}
-	}
-
-	err := util.CheckPoems(poems)
-	count := len(poems)
-
-	if err != nil {
-		msg = err.Error()
-		if msg == "诗歌标题过长，解析可能有误" {
-			db.SavePoems(poems, poemType)
-		} else {
-			count = 0
-		}
-	} else {
-		db.SavePoems(poems, poemType)
-	}
-
-	db.SaveAddress(d.ctx.URL().String(), msg, count)
+	// 保存数据
+	db.Save(true, false, poet, models.GuDian.String(), poems, d.doc.Url.String())
 }
 
 // Dispatch 执行分派
