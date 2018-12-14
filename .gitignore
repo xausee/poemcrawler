@@ -21,3 +21,5 @@ db.txt
 PoemCrawler
 uatconfig.json
 prodconfig.json
+main
+bin/
