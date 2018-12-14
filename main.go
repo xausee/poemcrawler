@@ -2,7 +2,6 @@ package main
 
 import (
 	"PoemCrawler/dpc"
-	"PoemCrawler/ht"
 	"PoemCrawler/saver"
 	"log"
 	"net/http"
@@ -102,14 +101,19 @@ func main() {
 	// 中华诗库总目录
 	// c.Run("http://www.shiku.org/shiku/index.htm")
 	// 现代诗库
-	c.Run("http://www.shiku.org/shiku/xs/index.htm")
+	//c.Run("http://www.shiku.org/shiku/xs/index.htm")
 	// 古典诗库
 	// c.Run("http://www.shiku.org/shiku/gs/index.htm")
 	// 国际诗库
 	// c.Run("http://www.shiku.org/shiku/ws/index.htm")
 	// 搜韵网
-	// c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=XianQin")
+	//c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=XianQin")
 
-    // 爬取完毕后统一处理爬取失败的页面（再爬取一次）
-	ht.ParseAllFailPage()
+	var dynasties = []string{"XianQin", "Qin", "Han", "WeiJin", "NanBei", "Sui", "Tang", "Song", "Liao", "Jin", "Yuan", "Ming", "Qing", "Jindai", "Dangdai"}
+
+	for _, dynasty := range dynasties {
+		c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=" + dynasty)
+	}
+	// 爬取完毕后统一处理爬取失败的页面（再爬取一次）
+	//ht.ParseAllFailPage()
 }
