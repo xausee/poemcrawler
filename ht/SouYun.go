@@ -2,40 +2,33 @@ package ht
 
 import (
 	"PoemCrawler/models"
-	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
 	"gopkg.in/mgo.v2/bson"
-	"net/http"
 	"net/url"
 	"strings"
 )
 
 type SouYun struct {
-	uctx    *gocrawl.URLContext
-	res     *http.Response
-	doc     *goquery.Document
-	dynasty string
-	Poet    *models.Poet
-	poems   []models.Poem
+	doc   *goquery.Document
+	Poet  models.Poet
+	Poems []models.Poem
 }
 
 // NewSouYun 创建SouYun实例
-func NewSouYun(uctx *gocrawl.URLContext, res *http.Response, doc *goquery.Document) *SouYun {
-	poet := getPoet(uctx, doc)
-	poet.ID = bson.NewObjectId().Hex()
-
+func NewSouYun(doc *goquery.Document) *SouYun {
 	return &SouYun{
-		uctx:    uctx,
-		res:     res,
-		doc:     doc,
-		dynasty: getDynasty(uctx),
-		Poet:    poet,
-		poems:   make([]models.Poem, 0, 0),
+		doc:   doc,
+		Poems: make([]models.Poem, 0, 0),
 	}
 }
 
-func getPoet(uctx *gocrawl.URLContext, doc *goquery.Document) *models.Poet {
-	values, _ := url.ParseQuery(uctx.URL().String())
+func (t *SouYun) Parse() {
+	t.Poet = t.getPoet(t.doc)
+	t.Poems = t.GetPoems()
+}
+
+func (t *SouYun) getPoet(doc *goquery.Document) models.Poet {
+	values, _ := url.ParseQuery(doc.Url.String())
 	name := values.Get("author")
 
 	if name == "" {
@@ -43,16 +36,18 @@ func getPoet(uctx *gocrawl.URLContext, doc *goquery.Document) *models.Poet {
 		name = strings.TrimSpace(name)
 	}
 
-	p := &models.Poet{
-		Name: name,
+	p := models.Poet{
+		ID:      bson.NewObjectId().Hex(),
+		Name:    name,
+		Dynasty: t.getDynasty(t.doc.Url.String()),
 	}
 
 	return p
 }
 
-func getDynasty(uctx *gocrawl.URLContext) string {
-	values, _ := url.ParseQuery(uctx.URL().String())
-	dynasty := values.Get("http://sou-yun.com/PoemIndex.aspx?dynasty")
+func (t *SouYun) getDynasty(desUrl string) string {
+	values, _ := url.ParseQuery(desUrl)
+	dynasty := values.Get("https://sou-yun.com/PoemIndex.aspx?dynasty")
 	if dynasty != "" {
 		switch dynasty {
 		case "XianQin":
@@ -144,8 +139,8 @@ func (t *SouYun) GetPoems() (poems []models.Poem) {
 				poem := models.Poem{
 					AuthorID:   t.Poet.ID,
 					Author:     t.Poet.Name,
-					Dynasty:    t.dynasty,
-					Source:     t.uctx.URL().String(),
+					Dynasty:    t.Poet.Dynasty,
+					Source:     t.doc.Url.String(),
 					Title:      title,
 					Content:    content,
 					Commentary: commentary,

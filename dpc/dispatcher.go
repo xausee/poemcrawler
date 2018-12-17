@@ -33,12 +33,10 @@ func NewDispatcher(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Doc
 }
 
 func (d Dispatcher) DispatchToSouYun() {
-	souyun := ht.NewSouYun(d.ctx, d.res, d.doc)
-	poet := *souyun.Poet
-	poems := souyun.GetPoems()
-
+	souyun := ht.NewSouYun(d.doc)
+	souyun.Parse()
 	// 保存数据
-	db.Save(true, false, poet, models.GuDian.String(), poems, d.doc.Url.String())
+	db.Save(true, false, souyun.Poet, models.GuDian.String(), souyun.Poems, d.doc.Url.String())
 }
 
 // Dispatch 执行分派

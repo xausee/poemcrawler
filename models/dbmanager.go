@@ -85,7 +85,7 @@ var CONFIG Config
 var mongoURI string
 
 func init() {
-	CONFIG = loadConfig(SouYun)
+	CONFIG = loadConfig(CaoMangUAT)
 
 	mongoURI = fmt.Sprintf("mongodb://%s:%s@%s:%v/%s",
 		CONFIG.User.Name,

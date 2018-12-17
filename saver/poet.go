@@ -34,10 +34,16 @@ func SavePoet(p models.Poet) {
 		"9": "J",
 	}
 
-	if unicode.IsLetter(r[0]) {
+	//if unicode.IsLetter(r[0]) {
+	// // unicode.IsLetter 方法无法判断汉字
+	//	// 字母开头的情况
+	//	p.AlphabetIndex = string(r[0])
+	//}
+	letters:="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	if strings.Contains(string(r[0]), letters){
 		// 字母开头的情况
 		p.AlphabetIndex = string(r[0])
-	} else if unicode.IsDigit(r[0]) {
+	}else if unicode.IsDigit(r[0]) {
 		// 阿拉伯数字的情况
 		p.AlphabetIndex = digits[string(r[0])]
 	} else {

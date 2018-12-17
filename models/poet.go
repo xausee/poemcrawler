@@ -13,6 +13,7 @@ type Poet struct {
 	Name                string   // 名字
 	AlphabetIndex       string   // 名字字母表索引
 	Chronology          string   // 诗人所属年代
+	Dynasty             string   // 诗人朝代，用于古代诗人，近代诗人使用上面Chronology（年代）字段
 	Genres              []string // 诗人所属流派，可以是多个
 	Intro               string   // 简介
 	Avatar              string   // 头像：ID号.png
