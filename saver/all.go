@@ -5,33 +5,32 @@ import (
 	"PoemCrawler/util"
 )
 
-func Save(hasPoet bool, isPoemCollection bool, poet models.Poet, poemType string, poems []models.Poem, url string) {
+// CheckSave 数据校验和保存
+func CheckSave(data models.SaveData) {
 	msg := ""
-	if hasPoet {
-		err := util.CheckPoet(poet)
+	if data.HasPoet {
+		err := util.CheckPoet(data.Poet)
 		if err != nil {
 			msg = err.Error()
 		} else {
-			if !isPoemCollection {
-				SavePoet(poet)
+			if !data.IsPoemCollection {
+				SavePoet(data.Poet)
 			}
 		}
 	}
 
-	err := util.CheckPoems(poems)
-	count := len(poems)
+	err := util.CheckPoems(data.Poems)
+	count := len(data.Poems)
 
 	if err != nil {
 		msg = err.Error()
 		if msg == "诗歌标题过长，解析可能有误" {
-			SavePoems(poems, poemType)
+			SavePoems(data.Poems, data.PoemType)
 		} else {
 			count = 0
 		}
 	} else {
-		SavePoems(poems, poemType)
+		SavePoems(data.Poems, data.PoemType)
 	}
-
-	SaveAddress(url, msg, count)
+	SaveAddress(data.Url, msg, count)
 }
-

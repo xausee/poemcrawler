@@ -2,12 +2,14 @@ package ht
 
 import (
 	"PoemCrawler/models"
-	"github.com/PuerkitoBio/goquery"
-	"gopkg.in/mgo.v2/bson"
 	"net/url"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"gopkg.in/mgo.v2/bson"
 )
 
+// SouYun 搜韵数据结构
 type SouYun struct {
 	doc   *goquery.Document
 	Poet  models.Poet
@@ -22,9 +24,10 @@ func NewSouYun(doc *goquery.Document) *SouYun {
 	}
 }
 
+// Parse 解析
 func (t *SouYun) Parse() {
 	t.Poet = t.getPoet(t.doc)
-	t.Poems = t.GetPoems()
+	t.Poems = t.getPoems()
 }
 
 func (t *SouYun) getPoet(doc *goquery.Document) models.Poet {
@@ -45,8 +48,8 @@ func (t *SouYun) getPoet(doc *goquery.Document) models.Poet {
 	return p
 }
 
-func (t *SouYun) getDynasty(desUrl string) string {
-	values, _ := url.ParseQuery(desUrl)
+func (t *SouYun) getDynasty(desURL string) string {
+	values, _ := url.ParseQuery(desURL)
 	dynasty := values.Get("https://sou-yun.com/PoemIndex.aspx?dynasty")
 	if dynasty != "" {
 		switch dynasty {
@@ -102,7 +105,7 @@ func (t *SouYun) getDynasty(desUrl string) string {
 	return dynasty
 }
 
-func (t *SouYun) GetPoems() (poems []models.Poem) {
+func (t *SouYun) getPoems() (poems []models.Poem) {
 	t.doc.Find("body").Find("div").Each(func(i int, s *goquery.Selection) {
 		id, exist := s.Attr("id")
 		if exist {

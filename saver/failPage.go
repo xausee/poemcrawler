@@ -7,9 +7,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// FailPage 爬取或者解析失败的页面
 type FailPage struct {
 	ID  string // ID号
-	Url string // 网页地址
+	URL string // 网页地址
 }
 
 // SaveFailPage 保存抓取失败的页面到数据库
@@ -24,7 +25,7 @@ func SaveFailPage(url string) {
 
 	f := FailPage{
 		ID:  bson.NewObjectId().Hex(),
-		Url: url,
+		URL: url,
 	}
 
 	err = c.Insert(f)
@@ -33,8 +34,8 @@ func SaveFailPage(url string) {
 	}
 }
 
-// GetAllFailPageUrl 获取所有失败的记录
-func GetAllFailPageUrl() []string {
+// GetAllFailPageURL 获取所有失败的记录
+func GetAllFailPageURL() []string {
 	db, err := models.NewDBManager()
 	if err != nil {
 		log.Println(err)
@@ -51,7 +52,7 @@ func GetAllFailPageUrl() []string {
 
 	var urls []string
 	for _, page := range pages {
-		urls = append(urls, page.Url)
+		urls = append(urls, page.URL)
 	}
 
 	return urls
@@ -67,7 +68,7 @@ func DeleteFailPage(url string) {
 
 	c := db.Session.DB(models.CONFIG.Mongo.DB).C(models.FailPage)
 
-	err = c.Remove(bson.M{"url":url})
+	err = c.Remove(bson.M{"url": url})
 	if err != nil {
 		log.Println(err)
 	}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"PoemCrawler/dpc"
-	"PoemCrawler/saver"
+	db "PoemCrawler/saver"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -22,7 +22,7 @@ func (e *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Do
 	//必须要先声明defer，否则不能捕获到panic异常
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("处理 " + ctx.URL().String() + " 时产生异常，继续...")
+			log.Println("处理 " + ctx.URL().String() + " 时产生异常")
 			debug.PrintStack()
 			//e.Visit(ctx, res, doc)
 			db.SaveFailPage(ctx.URL().String())
@@ -101,7 +101,9 @@ func main() {
 	// 中华诗库总目录
 	// c.Run("http://www.shiku.org/shiku/index.htm")
 	// 现代诗库
-	//c.Run("http://www.shiku.org/shiku/xs/index.htm")
+	c.Run("http://www.shiku.org/shiku/xs/index.htm")
+	// 爬取完毕后统一处理爬取失败的页面（再爬取一次）
+	// ht.ParseAllFailPage()
 	// 古典诗库
 	// c.Run("http://www.shiku.org/shiku/gs/index.htm")
 	// 国际诗库
@@ -109,11 +111,9 @@ func main() {
 	// 搜韵网
 	//c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=XianQin")
 
-	var dynasties = []string{"XianQin", "Qin", "Han", "WeiJin", "NanBei", "Sui", "Tang", "Song", "Liao", "Jin", "Yuan", "Ming", "Qing", "Jindai", "Dangdai"}
+	// var dynasties = []string{"XianQin", "Qin", "Han", "WeiJin", "NanBei", "Sui", "Tang", "Song", "Liao", "Jin", "Yuan", "Ming", "Qing", "Jindai", "Dangdai"}
 
-	for _, dynasty := range dynasties {
-		c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=" + dynasty)
-	}
-	// 爬取完毕后统一处理爬取失败的页面（再爬取一次）
-	//ht.ParseAllFailPage()
+	// for _, dynasty := range dynasties {
+	// 	c.Run("https://sou-yun.com/PoemIndex.aspx?dynasty=" + dynasty)
+	// }
 }

@@ -3,7 +3,7 @@ package dpc
 import (
 	"PoemCrawler/ht"
 	"PoemCrawler/models"
-	"PoemCrawler/saver"
+	db "PoemCrawler/saver"
 	"log"
 	"net/http"
 	"strings"
@@ -13,12 +13,6 @@ import (
 	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
 )
-
-// 现代诗人年表
-var poetChronology = make(map[string]string)
-
-// 诗歌流派信息
-var genres = make([]models.Genre, 0, 50)
 
 // Dispatcher 分派器
 type Dispatcher struct {
@@ -32,14 +26,25 @@ func NewDispatcher(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Doc
 	return &Dispatcher{ctx: ctx, res: res, doc: doc}
 }
 
+// DispatchToSouYun 分派到诗韵处理
 func (d Dispatcher) DispatchToSouYun() {
 	souyun := ht.NewSouYun(d.doc)
 	souyun.Parse()
+
+	data := models.SaveData{
+		HasPoet:          true,
+		IsPoemCollection: false,
+		Poet:             souyun.Poet,
+		PoemType:         models.GuDian.String(),
+		Poems:            souyun.Poems,
+		Url:              d.doc.Url.String(),
+	}
+
 	// 保存数据
-	db.Save(true, false, souyun.Poet, models.GuDian.String(), souyun.Poems, d.doc.Url.String())
+	db.CheckSave(data)
 }
 
-// Dispatch 执行分派
+// DispatchToShiKu 执行诗库处理
 func (d Dispatcher) DispatchToShiKu() {
 	p := strings.TrimLeft(d.doc.Url.Path, "/")
 	ps := strings.Split(p, "/")
@@ -47,9 +52,7 @@ func (d Dispatcher) DispatchToShiKu() {
 	t := ps[1]
 
 	suffix := ps[len(ps)-1]
-	if strings.Contains(suffix, "index") &&
-		d.doc.Url.String() != "http://www.shiku.org/shiku/xs/index.htm" &&
-		d.doc.Url.String() != "http://www.shiku.org/shiku/xs/indexlp.htm" {
+	if strings.Contains(suffix, "index") {
 		return
 	}
 
@@ -61,20 +64,20 @@ func (d Dispatcher) DispatchToShiKu() {
 
 	switch t {
 	case "xs":
-		// 先获取诗人年表数据，作为全局数据来使用
-		if len(poetChronology) == 0 {
-			poetChronology = ht.GetPoetChronology()
+		c := ht.NewXianDaiShi(d.doc)
+		c.Parse()
+		data := models.SaveData{
+			HasPoet:          true,
+			IsPoemCollection: c.IsPoemCollection,
+			Poet:             c.Poet,
+			PoemType:         models.XianDai.String(),
+			Poems:            c.Poems,
+			Url:              d.doc.Url.String(),
 		}
 
-		// 获取诗歌流派数据
-		if len(genres) == 0 {
-			genres = ht.GetPoemGenres()
-			if !db.IsGenresSaved() {
-				db.SaveGenres(genres)
-			}
-		}
+		db.CheckSave(data)
 
-		ht.ParseXianDaiShi(poetChronology, genres, d.doc)
+		return
 	case "gs":
 		poemType = models.GuDian.String()
 		c := ht.NewGuDianShi(d.ctx, d.res, d.doc)
@@ -164,6 +167,15 @@ func (d Dispatcher) DispatchToShiKu() {
 		}
 	}
 
+	data := models.SaveData{
+		HasPoet:          hasPoet,
+		IsPoemCollection: isPoemCollection,
+		Poet:             poet,
+		PoemType:         poemType,
+		Poems:            poems,
+		Url:              d.doc.Url.String(),
+	}
+
 	// 保存数据
-	db.Save(hasPoet, isPoemCollection, poet, poemType, poems, d.doc.Url.String())
+	db.CheckSave(data)
 }

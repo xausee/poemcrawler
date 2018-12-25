@@ -4,29 +4,161 @@ import (
 	"PoemCrawler/models"
 	"PoemCrawler/util"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/PuerkitoBio/goquery"
 	"gopkg.in/mgo.v2/bson"
-	"strings"
 )
+
+// 现代诗人年表
+var poetChronology = make(map[string]string)
+
+// 诗歌流派信息
+var genres = make([]models.Genre, 0, 50)
+
+func init() {
+	// 先获取诗人年表数据，作为全局数据来使用
+	if len(poetChronology) == 0 {
+		doc := GetDocument("http://www.shiku.org/shiku/xs/index.htm")
+
+		c := NewXianDaiShi(doc)
+		poetChronology = c.getPoetChronology()
+	}
+
+	// 获取诗歌流派数据
+	if len(genres) == 0 {
+		doc := GetDocument("http://www.shiku.org/shiku/xs/indexlp.htm")
+
+		c := NewXianDaiShi(doc)
+		genres = c.getGenre()
+	}
+}
+
+// ParseAllFailPage 解析所有失败的页面
+//func ParseAllFailPage() {
+// 	urls := db.GetAllFailPageURL()
+// 	ParsePages(urls)
+// }
+
+// ParsePages 解析指定的页面
+// func ParsePages(urls []string) {
+// 	chrs := GetPoetChronology()
+// 	gens := GetPoemGenres()
+// 	for _, url := range urls {
+// 		log.Println("访问：" + url)
+// 		doc := GetDocument(url)
+// 		c := NewXianDaiShi(doc)
+// 		c.Parse(chrs, gens, doc)
+// 		// 移除解析过的失败页面记录
+// 		db.DeleteFailPage(url)
+// 	}
+// }
+
+// GetDocument 获取单个页面原始document数据
+func GetDocument(url string) *goquery.Document {
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		log.Println(err.Error())
+		return nil
+	}
+
+	return doc
+}
+
+// // GetPoetChronology 获取现代诗年代数据
+// func GetPoetChronology() map[string]string {
+// 	doc := GetDocument("http://www.shiku.org/shiku/xs/index.htm")
+
+// 	if doc == nil {
+// 		return make(map[string]string)
+// 	}
+
+// 	c := NewXianDaiShi(doc)
+// 	poetChronology := c.getPoetChronology()
+
+// 	return poetChronology
+// }
+
+// // GetPoemGenres 获取现代诗流派数据
+// func GetPoemGenres() []models.Genre {
+// 	doc := GetDocument("http://www.shiku.org/shiku/xs/indexlp.htm")
+// 	if doc == nil {
+// 		return make([]models.Genre, 0, 50)
+// 	}
+
+// 	c := NewXianDaiShi(doc)
+// 	genres := c.getGenre()
+
+// 	return genres
+// }
 
 // XianDaiShi 处理现代诗歌的类型
 // 页面样例 http://www.shiku.org/shiku/xs/xuzhimo.htm
 type XianDaiShi struct {
-	doc   *goquery.Document
-	Poet  *models.Poet
-	Poems []models.Poem
+	doc              *goquery.Document
+	Poet             models.Poet
+	IsPoemCollection bool
+	Poems            []models.Poem
 }
 
 // NewXianDaiShi 创建现代诗对象
 func NewXianDaiShi(doc *goquery.Document) *XianDaiShi {
 	return &XianDaiShi{
-		doc:   doc,
-		Poems: make([]models.Poem, 0, 0),
+		doc:              doc,
+		IsPoemCollection: false,
+		Poems:            make([]models.Poem, 0, 0),
 	}
 }
 
-// GetPoetChronology 获取诗人年表信息
-func (t XianDaiShi) GetPoetChronology() map[string]string {
+// Parse 解析现代诗
+func (t *XianDaiShi) Parse() {
+	p := strings.TrimLeft(t.doc.Url.Path, "/")
+	ps := strings.Split(p, "/")
+
+	suffix := ps[len(ps)-1]
+	if strings.Contains(suffix, "index") {
+		return
+	}
+
+	if len(ps) == 4 {
+		if ps[2] == "yeshibin" {
+			// 诗集的情况，一个页面多首诗
+			// 如：http://www.shiku.org/shiku/xs/yeshibin/yeshibin_ztz_1.htm
+			t.parsePoet()
+			t.parsePoems()
+		} else {
+			// 诗集的情况，一个页面一首诗
+			// 如：http://www.shiku.org/shiku/xs/haizi/154.htm
+			t.parsePoetFromOnePageOfCollection()
+			t.parsePoemFromOnePageOfCollection()
+		}
+		t.IsPoemCollection = true
+	} else {
+		t.parsePoet()
+		t.parsePoems()
+	}
+
+	// 给诗人年代字段赋值
+	if _, ok := poetChronology[suffix]; ok {
+		t.Poet.Chronology = poetChronology[suffix]
+	}
+
+	// 处理诗人流派信息
+	gs := make([]string, 0, 5)
+	for _, genre := range genres {
+		for _, poetaddress := range genre.PoetAddresses {
+			if poetaddress.Name == t.Poet.Name && poetaddress.UrlAddress == suffix {
+				gs = append(gs, genre.Name)
+			}
+		}
+	}
+	t.Poet.Genres = gs
+}
+
+// getPoetChronology 获取诗人年表信息
+func (t XianDaiShi) getPoetChronology() map[string]string {
 	chronologyMap := make(map[string]string)
 
 	t.doc.Find("body").Find("table").Each(func(i int, s *goquery.Selection) {
@@ -48,8 +180,8 @@ func (t XianDaiShi) GetPoetChronology() map[string]string {
 	return chronologyMap
 }
 
-// GetGenre 获取诗歌流派
-func (t XianDaiShi) GetGenre() []models.Genre {
+// getGenre 获取诗歌流派
+func (t XianDaiShi) getGenre() []models.Genre {
 	genres := make([]models.Genre, 0, 50)
 	genreChronologyMap := make(map[string]string)
 
@@ -114,8 +246,8 @@ func (t XianDaiShi) GetGenre() []models.Genre {
 	return genres
 }
 
-// GetFirstPoemTitleWithSep 获取页面上第一首诗的标题
-func (t XianDaiShi) GetFirstPoemTitleWithSep() string {
+// getFirstPoemTitleWithSep 获取页面上第一首诗的标题
+func (t XianDaiShi) getFirstPoemTitleWithSep() string {
 	titles := make([]string, 0, 0)
 	var title string
 	//has999999 := false
@@ -151,8 +283,8 @@ func (t XianDaiShi) GetFirstPoemTitleWithSep() string {
 	return ""
 }
 
-// ParsePoet 解析网页获取诗人信息
-func (t *XianDaiShi) ParsePoet() *models.Poet {
+// parsePoet 解析网页获取诗人信息
+func (t *XianDaiShi) parsePoet() models.Poet {
 	gbkStr := t.doc.Find("title").Text()
 	bytes := []byte(gbkStr)
 	title := strings.TrimSpace(util.GBK2Unicode(bytes))
@@ -175,9 +307,9 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 		name = strings.TrimSpace(strings.Split(name, "诗集")[0])
 	}
 
-	ft := t.GetFirstPoemTitleWithSep()
+	ft := t.getFirstPoemTitleWithSep()
 	if ft == "" {
-		t.Poet = &models.Poet{
+		t.Poet = models.Poet{
 			Name:   name,
 			Intro:  "",
 			Source: t.doc.Url.String(),
@@ -194,7 +326,7 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 		}
 
 		intro := strings.TrimSpace(text)
-		t.Poet = &models.Poet{
+		t.Poet = models.Poet{
 			Name:   name,
 			Intro:  intro,
 			Source: t.doc.Url.String(),
@@ -206,8 +338,8 @@ func (t *XianDaiShi) ParsePoet() *models.Poet {
 	return t.Poet
 }
 
-// ParsePoetFromOnePageOfCollection 从诗集子页面获取诗人信息
-func (t *XianDaiShi) ParsePoetFromOnePageOfCollection() *models.Poet {
+// parsePoetFromOnePageOfCollection 从诗集子页面获取诗人信息
+func (t *XianDaiShi) parsePoetFromOnePageOfCollection() models.Poet {
 	gbkStr := t.doc.Find("title").Text()
 	bytes := []byte(gbkStr)
 	title := strings.TrimSpace(util.GBK2Unicode(bytes))
@@ -232,7 +364,7 @@ func (t *XianDaiShi) ParsePoetFromOnePageOfCollection() *models.Poet {
 		name = strings.TrimSpace(strings.Split(name, "诗集")[0])
 	}
 
-	t.Poet = &models.Poet{
+	t.Poet = models.Poet{
 		ID:     bson.NewObjectId().Hex(),
 		Name:   name,
 		Source: t.doc.Url.String(),
@@ -241,10 +373,10 @@ func (t *XianDaiShi) ParsePoetFromOnePageOfCollection() *models.Poet {
 	return t.Poet
 }
 
-// ParsePoemsH2AndP 标题为h2标签，诗歌内容为h2标签后第二个标签内
+// parsePoemsH2AndP 标题为h2标签，诗歌内容为h2标签后第二个标签内
 // 例子页面 http://www.shiku.org/shiku/xs/mudan.htm        第二个标签为p
 // 例子页面 http://www.shiku.org/shiku/xs/xuzhimo.htm      第二个标签为pre
-func (t *XianDaiShi) ParsePoemsH2AndP() []models.Poem {
+func (t *XianDaiShi) parsePoemsH2AndP() []models.Poem {
 	t.doc.Find("body").Find("h2").Each(func(i int, s *goquery.Selection) {
 		gbkFullTitle := s.Text()
 		fullTitleBytes := []byte(gbkFullTitle)
@@ -271,9 +403,9 @@ func (t *XianDaiShi) ParsePoemsH2AndP() []models.Poem {
 	return t.Poems
 }
 
-// ParsePoemsPAndP 标题为p align="center" 标签， 诗歌内容为标题标签后第一个p标签内
+// parsePoemsPAndP 标题为p align="center" 标签， 诗歌内容为标题标签后第一个p标签内
 // 例子页面 http://www.shiku.org/shiku/xs/guangweiran.htm
-func (t *XianDaiShi) ParsePoemsPAndP() []models.Poem {
+func (t *XianDaiShi) parsePoemsPAndP() []models.Poem {
 	t.doc.Find("body").Find("p[align=\"center\"]").Each(func(i int, s *goquery.Selection) {
 		gbkFullTitle := s.Text()
 		fullTitleBytes := []byte(gbkFullTitle)
@@ -303,9 +435,9 @@ func (t *XianDaiShi) ParsePoemsPAndP() []models.Poem {
 	return t.Poems
 }
 
-// ParsePoemFromOnePageOfCollection 获取诗集中的单首诗歌，返回只有一首诗歌的诗歌数组
+// parsePoemFromOnePageOfCollection 获取诗集中的单首诗歌，返回只有一首诗歌的诗歌数组
 // 例子页面：http://www.shiku.org/shiku/xs/haizi/100.htm
-func (t *XianDaiShi) ParsePoemFromOnePageOfCollection() []models.Poem {
+func (t *XianDaiShi) parsePoemFromOnePageOfCollection() []models.Poem {
 	gbkTitle := t.doc.Find("body").Find("h1").Text()
 	titleBytes := []byte(gbkTitle)
 	title := strings.TrimSpace(util.GBK2Unicode(titleBytes))
@@ -331,8 +463,8 @@ func (t *XianDaiShi) ParsePoemFromOnePageOfCollection() []models.Poem {
 	return t.Poems
 }
 
-// ParsePoems 通过在标题前加分隔符后解析纯文本的方式解析页面
-func (t *XianDaiShi) ParsePoems() []models.Poem {
+// parsePoems 通过在标题前加分隔符后解析纯文本的方式解析页面
+func (t *XianDaiShi) parsePoems() []models.Poem {
 	titles := make([]string, 0, 0)
 
 	has999999 := false

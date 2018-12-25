@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"strings"
 
+	"log"
+	"regexp"
+
 	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
 	"gopkg.in/mgo.v2/bson"
-	"log"
-	"regexp"
 )
 
 // 处理古代诗歌的类型
@@ -23,6 +24,7 @@ type GuDianShi struct {
 	Poet    *models.Poet
 }
 
+// NewGuDianShi 创建古典诗对象
 func NewGuDianShi(uctx *gocrawl.URLContext, res *http.Response, doc *goquery.Document) *GuDianShi {
 	ch := GetCharset(doc)
 	poet := GetPoet(uctx, doc, ch)

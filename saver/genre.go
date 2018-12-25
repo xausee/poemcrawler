@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mozillazg/go-pinyin"
+	pinyin "github.com/mozillazg/go-pinyin"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -51,6 +51,7 @@ func SaveGenres(genres []models.Genre) int {
 	return n
 }
 
+// IsGenresSaved 流派数据是否已经记录
 func IsGenresSaved() bool {
 	db, err := models.NewDBManager()
 	if err != nil {

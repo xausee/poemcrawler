@@ -7,11 +7,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// Address 页面处理信息概览数据结构
 type Address struct {
 	ID      string // ID号
 	Count   int    // 解析到的诗歌数量
 	Message string // 出错信息
-	Url     string // 网页地址
+	URL     string // 网页地址
 }
 
 // SaveAddress 保存单首诗歌到数据库
@@ -28,7 +29,7 @@ func SaveAddress(addr, msg string, count int) {
 		ID:      bson.NewObjectId().Hex(),
 		Count:   count,
 		Message: msg,
-		Url:     addr,
+		URL:     addr,
 	}
 
 	err = c.Insert(a)
