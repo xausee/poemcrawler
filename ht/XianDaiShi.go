@@ -3,6 +3,7 @@ package ht
 import (
 	"PoemCrawler/models"
 	"PoemCrawler/util"
+	db "PoemCrawler/saver"
 	"fmt"
 	"log"
 	"strings"
@@ -32,6 +33,7 @@ func init() {
 
 		c := NewXianDaiShi(doc)
 		genres = c.getGenre()
+		db.SaveGenres(genres)
 	}
 }
 
@@ -66,33 +68,6 @@ func GetDocument(url string) *goquery.Document {
 
 	return doc
 }
-
-// // GetPoetChronology 获取现代诗年代数据
-// func GetPoetChronology() map[string]string {
-// 	doc := GetDocument("http://www.shiku.org/shiku/xs/index.htm")
-
-// 	if doc == nil {
-// 		return make(map[string]string)
-// 	}
-
-// 	c := NewXianDaiShi(doc)
-// 	poetChronology := c.getPoetChronology()
-
-// 	return poetChronology
-// }
-
-// // GetPoemGenres 获取现代诗流派数据
-// func GetPoemGenres() []models.Genre {
-// 	doc := GetDocument("http://www.shiku.org/shiku/xs/indexlp.htm")
-// 	if doc == nil {
-// 		return make([]models.Genre, 0, 50)
-// 	}
-
-// 	c := NewXianDaiShi(doc)
-// 	genres := c.getGenre()
-
-// 	return genres
-// }
 
 // XianDaiShi 处理现代诗歌的类型
 // 页面样例 http://www.shiku.org/shiku/xs/xuzhimo.htm

@@ -1,0 +1,12 @@
+{
+  "mongo": {
+    "db": "SouYun",
+    "ip": "47.106.237.90",
+    "poolLimit": 500,
+    "port": 27017
+  },
+  "user": {
+    "name": "souyun",
+    "pwd": "souyun"
+  }
+}

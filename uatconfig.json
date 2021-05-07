@@ -1,0 +1,12 @@
+{
+    "mongo": {
+        "ip": "localhost",
+        "port": 27017,
+        "poolLimit": 500,
+        "db": "CaoMangUAT"
+    },
+    "user": {
+        "name": "caomanguat",
+        "pwd": "caomanguat"
+    }
+}
