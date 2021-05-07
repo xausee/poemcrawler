@@ -9,8 +9,8 @@ import (
 
 // FailPage 爬取或者解析失败的页面
 type FailPage struct {
-	ID  string // ID号
-	URL string // 网页地址
+	ID  string `json:"id"`  // ID号
+	URL string `json:"url"` // 网页地址
 }
 
 // SaveFailPage 保存抓取失败的页面到数据库

@@ -11,10 +11,10 @@ import (
 
 // Comment 评论
 type Comment struct {
-	ID          string // 评论ID号
-	CommenterID string // 评论人ID
-	Body        string // 评论内容
-	TimeStamp   string // 时间戳
+	ID          string `json:"id"`          // 评论ID号
+	CommenterID string `json:"commenterid"` // 评论人ID
+	Body        string `json:"body"`        // 评论内容
+	TimeStamp   string `json:"timestamp"`   // 时间戳
 }
 
 // PoemType 诗歌类型
@@ -49,25 +49,25 @@ func (t PoemType) String() string {
 
 // Poem 结构
 type Poem struct {
-	N                   int      // 自增序号
-	ID                  string   // ID号
-	Author              string   // 作者名字
-	AuthorID            string   // 作者ID号
-	Dynasty             string   // 朝代
-	Cover               string   // 封面，没有实际值存到数据库，用于数据传输到前端时存储诗人头像地址
-	Type                string   // 诗歌类型：现代、古典、译诗、外文
-	Tags                []string // 标签
-	Title               string   // 标题
-	SubTitle            string   // 副标题
-	Volume              string   // 卷
-	Content             string   // 内容
-	Commentary          string   // 注释、注解
-	Source              string   // 来源
-	View                int      // 阅读次数
-	Praise              int      // 点赞次数
-	CommentID           []string // 评论ID集合
-	TimeStamp           string   // 创建时间戳
-	LastUpdateTimeStamp string   // 最后更新时间戳
+	N                   int      `json:"n"`                   // 自增序号
+	ID                  string   `json:"id"`                  // ID号
+	Author              string   `json:"author"`              // 作者名字
+	AuthorID            string   `json:"authorid"`            // 作者ID号
+	Dynasty             string   `json:"dynasty"`             // 朝代
+	Cover               string   `json:"cover"`               // 封面，没有实际值存到数据库，用于数据传输到前端时存储诗人头像地址
+	Type                string   `json:"type"`                // 诗歌类型：现代、古典、译诗、外文
+	Tags                []string `json:"tags"`                // 标签
+	Title               string   `json:"title"`               // 标题
+	SubTitle            string   `json:"subtitle"`            // 副标题
+	Volume              string   `json:"volume"`              // 卷
+	Content             string   `json:"content"`             // 内容
+	Commentary          string   `json:"commentary"`          // 注释、注解
+	Source              string   `json:"source"`              // 来源
+	View                int      `json:"view"`                // 阅读次数
+	Praise              int      `json:"praise"`              // 点赞次数
+	CommentID           []string `json:"commentid"`           // 评论ID集合
+	TimeStamp           string   `json:"timestamp"`           // 创建时间戳
+	LastUpdateTimeStamp string   `json:"lastupdatetimestamp"` // 最后更新时间戳
 }
 
 // PoemModel 诗歌数据库model

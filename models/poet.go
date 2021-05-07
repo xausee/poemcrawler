@@ -9,17 +9,17 @@ import (
 
 // Poet 诗人数据结构
 type Poet struct {
-	ID                  string   // ID号
-	Name                string   // 名字
-	AlphabetIndex       string   // 名字字母表索引
-	Chronology          string   // 诗人所属年代
-	Dynasty             string   // 诗人朝代，用于古代诗人，近代诗人使用上面Chronology（年代）字段
-	Genres              []string // 诗人所属流派，可以是多个
-	Intro               string   // 简介
-	Avatar              string   // 头像：ID号.png
-	Source              string   // 来源
-	TimeStamp           string   // 创建时间戳
-	LastUpdateTimeStamp string   // 最后更新时间戳
+	ID                  string   `json:"id"`                  // ID号
+	Name                string   `json:"name"`                // 名字
+	AlphabetIndex       string   `json:"alphabetindex"`       // 名字字母表索引
+	Chronology          string   `json:"chronology"`          // 诗人所属年代
+	Dynasty             string   `json:"dynasty"`             // 诗人朝代，用于古代诗人，近代诗人使用上面Chronology（年代）字段
+	Genres              []string `json:"genres"`              // 诗人所属流派，可以是多个
+	Intro               string   `json:"intro"`               // 简介
+	Avatar              string   `json:"avatar"`              // 头像：ID号.png
+	Source              string   `json:"source"`              // 来源
+	TimeStamp           string   `json:"timestamp"`           // 创建时间戳
+	LastUpdateTimeStamp string   `json:"lastupdatetimestamp"` // 最后更新时间戳
 }
 
 // PoetModel 诗人数据库model

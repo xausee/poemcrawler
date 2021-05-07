@@ -22,3 +22,6 @@ PoemCrawler
 main
 bin/
 data/
+poems.json
+poets.json
+genres.json

@@ -88,6 +88,8 @@ func (e *Ext) Filter(ctx *gocrawl.URLContext, isVisited bool) bool {
 }
 
 func main() {
+	db.Export()
+	return
 	ext := &Ext{&gocrawl.DefaultExtender{}}
 	// Set custom options
 	opts := gocrawl.NewOptions(ext)

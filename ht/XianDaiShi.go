@@ -3,7 +3,6 @@ package ht
 import (
 	"PoemCrawler/models"
 	"PoemCrawler/util"
-	db "PoemCrawler/saver"
 	"fmt"
 	"log"
 	"strings"
@@ -33,7 +32,7 @@ func init() {
 
 		c := NewXianDaiShi(doc)
 		genres = c.getGenre()
-		db.SaveGenres(genres)
+		//db.SaveGenres(genres)
 	}
 }
 
